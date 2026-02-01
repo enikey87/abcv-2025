@@ -5,6 +5,7 @@ import {
   ABCSummary,
   ABCVENMatrix,
   VENCategory,
+  VENSummary,
 } from './types';
 
 export function analyzeABC(items: DrugItem[]): AnalyzedItem[] {
@@ -45,6 +46,7 @@ export function analyzeABC(items: DrugItem[]): AnalyzedItem[] {
 
 export function getABCSummary(analyzedItems: AnalyzedItem[]): ABCSummary[] {
   const totalAmount = analyzedItems.reduce((sum, item) => sum + item.amount, 0);
+  const totalCount = analyzedItems.length;
 
   const groups: Record<ABCCategory, { count: number; amount: number }> = {
     A: { count: 0, amount: 0 },
@@ -61,6 +63,31 @@ export function getABCSummary(analyzedItems: AnalyzedItem[]): ABCSummary[] {
     category,
     count: groups[category].count,
     amount: groups[category].amount,
+    percentCount: (groups[category].count / totalCount) * 100,
+    percentAmount: (groups[category].amount / totalAmount) * 100,
+  }));
+}
+
+export function getVENSummary(analyzedItems: AnalyzedItem[]): VENSummary[] {
+  const totalAmount = analyzedItems.reduce((sum, item) => sum + item.amount, 0);
+  const totalCount = analyzedItems.length;
+
+  const groups: Record<VENCategory, { count: number; amount: number }> = {
+    V: { count: 0, amount: 0 },
+    E: { count: 0, amount: 0 },
+    N: { count: 0, amount: 0 },
+  };
+
+  for (const item of analyzedItems) {
+    groups[item.ven].count++;
+    groups[item.ven].amount += item.amount;
+  }
+
+  return (['V', 'E', 'N'] as VENCategory[]).map((category) => ({
+    category,
+    count: groups[category].count,
+    amount: groups[category].amount,
+    percentCount: (groups[category].count / totalCount) * 100,
     percentAmount: (groups[category].amount / totalAmount) * 100,
   }));
 }

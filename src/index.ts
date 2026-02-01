@@ -3,7 +3,7 @@ import { parseCSV } from './parser';
 import {
   analyzeABC,
   getABCSummary,
-  getABCVENMatrix,
+  getVENSummary,
   getVENDistributionByABC,
 } from './analyzer';
 import {
@@ -55,7 +55,7 @@ function main(): void {
   const analyzedItems = analyzeABC(items);
 
   const summary = getABCSummary(analyzedItems);
-  const matrix = getABCVENMatrix(analyzedItems);
+  const venSummary = getVENSummary(analyzedItems);
   const venDistribution = getVENDistributionByABC(analyzedItems);
 
   // Generate reports
@@ -65,7 +65,7 @@ function main(): void {
   generateTextReport(
     analyzedItems,
     summary,
-    matrix,
+    venSummary,
     venDistribution,
     textOutputPath
   );
@@ -76,7 +76,7 @@ function main(): void {
   console.log(
     generateConsoleSummary(
       summary,
-      matrix,
+      venSummary,
       venDistribution,
       totalAmount,
       items.length

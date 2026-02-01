@@ -3,7 +3,7 @@ import * as path from 'path';
 import {
   AnalyzedItem,
   ABCSummary,
-  ABCVENMatrix,
+  VENSummary,
   ABCCategory,
   VENCategory,
 } from './types';
@@ -17,6 +17,78 @@ export function formatAmount(amount: number): string {
 
 export function formatPercent(percent: number): string {
   return percent.toFixed(2) + '%';
+}
+
+export function generateTable1(summary: ABCSummary[], totalCount: number, totalAmount: number): string {
+  const lines: string[] = [];
+
+  lines.push('Таблица 1. ABC-анализ');
+  lines.push('┌────────┬───────────┬────────┬─────────────────┬──────────┐');
+  lines.push('│ Группа │ Число МНН │ % МНН  │ Затраты, руб.   │ % затрат │');
+  lines.push('├────────┼───────────┼────────┼─────────────────┼──────────┤');
+
+  for (const group of summary) {
+    const countStr = group.count.toString().padStart(9);
+    const percentCountStr = formatPercent(group.percentCount).padStart(6);
+    const amountStr = formatAmount(group.amount).padStart(15);
+    const percentAmountStr = formatPercent(group.percentAmount).padStart(8);
+    lines.push(`│ ${group.category}      │ ${countStr} │ ${percentCountStr} │ ${amountStr} │ ${percentAmountStr} │`);
+  }
+
+  lines.push('├────────┼───────────┼────────┼─────────────────┼──────────┤');
+  const totalCountStr = totalCount.toString().padStart(9);
+  const totalAmountStr = formatAmount(totalAmount).padStart(15);
+  lines.push(`│ Итого  │ ${totalCountStr} │ 100.00% │ ${totalAmountStr} │  100.00% │`);
+  lines.push('└────────┴───────────┴────────┴─────────────────┴──────────┘');
+
+  return lines.join('\n');
+}
+
+export function generateTable2(venSummary: VENSummary[], totalCount: number, totalAmount: number): string {
+  const lines: string[] = [];
+
+  lines.push('Таблица 2. VEN-анализ');
+  lines.push('┌───────────┬───────────┬────────┬─────────────────┬──────────┐');
+  lines.push('│ Категория │ Число МНН │ % МНН  │ Затраты, руб.   │ % затрат │');
+  lines.push('├───────────┼───────────┼────────┼─────────────────┼──────────┤');
+
+  for (const group of venSummary) {
+    const countStr = group.count.toString().padStart(9);
+    const percentCountStr = formatPercent(group.percentCount).padStart(6);
+    const amountStr = formatAmount(group.amount).padStart(15);
+    const percentAmountStr = formatPercent(group.percentAmount).padStart(8);
+    lines.push(`│ ${group.category}         │ ${countStr} │ ${percentCountStr} │ ${amountStr} │ ${percentAmountStr} │`);
+  }
+
+  lines.push('├───────────┼───────────┼────────┼─────────────────┼──────────┤');
+  const totalCountStr = totalCount.toString().padStart(9);
+  const totalAmountStr = formatAmount(totalAmount).padStart(15);
+  lines.push(`│ Итого     │ ${totalCountStr} │ 100.00% │ ${totalAmountStr} │  100.00% │`);
+  lines.push('└───────────┴───────────┴────────┴─────────────────┴──────────┘');
+
+  return lines.join('\n');
+}
+
+export function generateTable3(
+  venDistribution: Record<ABCCategory, Record<VENCategory, { count: number; amount: number; percentCount: number; percentAmount: number }>>
+): string {
+  const lines: string[] = [];
+
+  lines.push('Таблица 3. Матрица ABC/VEN (% затрат внутри группы)');
+  lines.push('┌────────┬────────┬────────┬────────┐');
+  lines.push('│ Группа │ V, %   │ E, %   │ N, %   │');
+  lines.push('├────────┼────────┼────────┼────────┤');
+
+  for (const abc of ['A', 'B', 'C'] as ABCCategory[]) {
+    const vPercent = venDistribution[abc].V.percentAmount.toFixed(2).padStart(6);
+    const ePercent = venDistribution[abc].E.percentAmount.toFixed(2).padStart(6);
+    const nPercent = venDistribution[abc].N.percentAmount.toFixed(2).padStart(6);
+    lines.push(`│ ${abc}      │ ${vPercent} │ ${ePercent} │ ${nPercent} │`);
+  }
+
+  lines.push('└────────┴────────┴────────┴────────┘');
+
+  return lines.join('\n');
 }
 
 export function generateCSVReport(
@@ -41,7 +113,7 @@ export function generateCSVReport(
 
 export function generateConsoleSummary(
   summary: ABCSummary[],
-  matrix: ABCVENMatrix,
+  venSummary: VENSummary[],
   venDistribution: Record<ABCCategory, Record<VENCategory, { count: number; amount: number; percentCount: number; percentAmount: number }>>,
   totalAmount: number,
   totalCount: number
@@ -56,55 +128,18 @@ export function generateConsoleSummary(
   lines.push(`Общая сумма: ${formatAmount(totalAmount)} руб.`);
   lines.push('');
 
-  // ABC Summary
-  lines.push('───────────────────────────────────────────────────────────────');
-  lines.push('                  СВОДКА ПО ABC-ГРУППАМ');
-  lines.push('───────────────────────────────────────────────────────────────');
-  for (const group of summary) {
-    lines.push(
-      `Группа ${group.category}: ${group.count} позиций, ${formatAmount(group.amount)} руб. (${formatPercent(group.percentAmount)})`
-    );
-  }
+  // Table 1: ABC Analysis
+  lines.push(generateTable1(summary, totalCount, totalAmount));
   lines.push('');
 
-  // ABC/VEN Matrix
-  lines.push('───────────────────────────────────────────────────────────────');
-  lines.push('                  МАТРИЦА ABC/VEN');
-  lines.push('───────────────────────────────────────────────────────────────');
-  lines.push('        │     V      │     E      │     N      │   Итого');
-  lines.push('────────┼────────────┼────────────┼────────────┼──────────');
-
-  for (const abc of ['A', 'B', 'C'] as ABCCategory[]) {
-    const row: string[] = [`   ${abc}    │`];
-    let rowTotal = 0;
-
-    for (const ven of ['V', 'E', 'N'] as VENCategory[]) {
-      const cell = matrix[abc][ven];
-      rowTotal += cell.count;
-      row.push(` ${cell.count.toString().padStart(2)} (${formatPercent(cell.percentAmount).padStart(6)}) │`);
-    }
-
-    row.push(` ${rowTotal.toString().padStart(3)}`);
-    lines.push(row.join(''));
-  }
+  // Table 2: VEN Analysis
+  lines.push(generateTable2(venSummary, totalCount, totalAmount));
   lines.push('');
 
-  // VEN Distribution within each ABC group
-  lines.push('───────────────────────────────────────────────────────────────');
-  lines.push('          РАСПРЕДЕЛЕНИЕ VEN ВНУТРИ ABC-ГРУПП');
-  lines.push('───────────────────────────────────────────────────────────────');
-
-  for (const abc of ['A', 'B', 'C'] as ABCCategory[]) {
-    lines.push(`\nГруппа ${abc}:`);
-    for (const ven of ['V', 'E', 'N'] as VENCategory[]) {
-      const data = venDistribution[abc][ven];
-      lines.push(
-        `  ${ven}: ${data.count} позиций (${formatPercent(data.percentCount)}), ${formatAmount(data.amount)} руб. (${formatPercent(data.percentAmount)})`
-      );
-    }
-  }
-
+  // Table 3: ABC/VEN Matrix (% within ABC groups)
+  lines.push(generateTable3(venDistribution));
   lines.push('');
+
   lines.push('═══════════════════════════════════════════════════════════════');
 
   return lines.join('\n');
@@ -113,7 +148,7 @@ export function generateConsoleSummary(
 export function generateTextReport(
   items: AnalyzedItem[],
   summary: ABCSummary[],
-  matrix: ABCVENMatrix,
+  venSummary: VENSummary[],
   venDistribution: Record<ABCCategory, Record<VENCategory, { count: number; amount: number; percentCount: number; percentAmount: number }>>,
   outputPath: string
 ): void {
@@ -122,7 +157,7 @@ export function generateTextReport(
 
   const content = generateConsoleSummary(
     summary,
-    matrix,
+    venSummary,
     venDistribution,
     totalAmount,
     totalCount

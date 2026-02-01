@@ -33,5 +33,14 @@ export interface ABCSummary {
   category: ABCCategory;
   count: number;
   amount: number;
+  percentCount: number;
+  percentAmount: number;
+}
+
+export interface VENSummary {
+  category: VENCategory;
+  count: number;
+  amount: number;
+  percentCount: number;
   percentAmount: number;
 }
