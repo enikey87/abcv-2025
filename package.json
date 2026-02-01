@@ -4,14 +4,27 @@
   "description": "ABC/VEN анализ лекарственных средств",
   "main": "src/index.ts",
   "scripts": {
-    "analyze": "tsx src/index.ts"
+    "analyze": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
-  "keywords": ["abc", "ven", "analysis", "pharmacy"],
+  "keywords": [
+    "abc",
+    "ven",
+    "analysis",
+    "pharmacy"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
   }
 }

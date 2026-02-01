@@ -24,3 +24,16 @@ npm-debug.log*
 # Environment
 .env
 .env.local
+/coverage/analyzer.ts.html
+/coverage/base.css
+/coverage/block-navigation.js
+/coverage/clover.xml
+/coverage/coverage-final.json
+/coverage/favicon.png
+/coverage/index.html
+/coverage/parser.ts.html
+/coverage/prettify.css
+/coverage/prettify.js
+/coverage/reporter.ts.html
+/coverage/sort-arrow-sprite.png
+/coverage/sorter.js
